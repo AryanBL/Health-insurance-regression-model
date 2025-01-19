@@ -28,55 +28,65 @@ def clean_data(df):
     df = df.reset_index(drop=True)
     return df
 
+
+
 def histogram(df):
-    # Plot a histogram for 'age'
+    # Create a figure with subplots
+    plt.figure(figsize=(15, 5))
+
+    # Histogram for 'age'
+    plt.subplot(1, 3, 1)  # 1 row, 3 columns, 1st subplot
     plt.hist(df['age'], bins=20, color='blue', edgecolor='black')
     plt.title('Distribution of Age')
     plt.xlabel('Age')
     plt.ylabel('Frequency')
-    plt.show()
 
-    # Plot a histogram for 'bmi'
+    # Histogram for 'bmi'
+    plt.subplot(1, 3, 2)  # 1 row, 3 columns, 2nd subplot
     plt.hist(df['bmi'], bins=20, color='green', edgecolor='black')
     plt.title('Distribution of BMI')
     plt.xlabel('BMI')
     plt.ylabel('Frequency')
-    plt.show()
 
-    # Plot a histogram for 'charges'
+    # Histogram for 'charges'
+    plt.subplot(1, 3, 3)  # 1 row, 3 columns, 3rd subplot
     plt.hist(df['charges'], bins=20, color='orange', edgecolor='black')
     plt.title('Distribution of Insurance Charges')
     plt.xlabel('Charges')
     plt.ylabel('Frequency')
+
+    # Adjust layout
+    plt.tight_layout()
     plt.show()
+
+
 
 
 def box_plot(df):
+    # Create a figure with subplots
     plt.figure(figsize=(12, 6))
 
     # Box plot for 'age'
-    plt.figure(figsize=(6, 4))
+    plt.subplot(1, 3, 1)  # 1 row, 3 columns, 1st subplot
     plt.boxplot(df['age'], vert=True, patch_artist=True, boxprops=dict(facecolor='blue'))
     plt.title('Box Plot of Age')
     plt.xlabel('Age')
-    plt.show()
 
     # Box plot for 'bmi'
-    plt.figure(figsize=(6, 4))
+    plt.subplot(1, 3, 2)  # 1 row, 3 columns, 2nd subplot
     plt.boxplot(df['bmi'], vert=True, patch_artist=True, boxprops=dict(facecolor='green'))
     plt.title('Box Plot of BMI')
     plt.xlabel('BMI')
-    plt.show()
 
     # Box plot for 'charges'
-    plt.figure(figsize=(6, 4))
+    plt.subplot(1, 3, 3)  # 1 row, 3 columns, 3rd subplot
     plt.boxplot(df['charges'], vert=True, patch_artist=True, boxprops=dict(facecolor='orange'))
     plt.title('Box Plot of Insurance Charges')
     plt.xlabel('Charges')
-    plt.show()
 
+    # Adjust layout
     plt.tight_layout()
-    plt.show()    
+    plt.show()
 
 
 def compute_measures(df, column):
@@ -167,35 +177,68 @@ def scatter_plot(df):
     plt.tight_layout(rect=[0, 0, 1, 0.96])  # Adjust spacing
     plt.show()
 
+    # Create a figure with subplots
+    fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+    fig.suptitle('Relationship Between Charges, Smoking, and Sex (BMI as Independent Variable)', fontsize=16)
+
+    # Plot 1: General Smokers
+    axes[0, 0].scatter(general_smokers['bmi'], general_smokers['charges'], color='red', alpha=0.6)
+    axes[0, 0].set_title('General Smokers')
+    axes[0, 0].set_xlabel('BMI')
+    axes[0, 0].set_ylabel('Charges')
+
+    # Plot 2: Female Smokers
+    axes[0, 1].scatter(female_smokers['bmi'], female_smokers['charges'], color='pink', alpha=0.6)
+    axes[0, 1].set_title('Female Smokers')
+    axes[0, 1].set_xlabel('BMI')
+    axes[0, 1].set_ylabel('Charges')
+
+    # Plot 3: Male Smokers
+    axes[1, 0].scatter(male_smokers['bmi'], male_smokers['charges'], color='blue', alpha=0.6)
+    axes[1, 0].set_title('Male Smokers')
+    axes[1, 0].set_xlabel('BMI')
+    axes[1, 0].set_ylabel('Charges')
+
+    # Plot 4: Non-Smokers
+    axes[1, 1].scatter(non_smokers['bmi'], non_smokers['charges'], color='green', alpha=0.6)
+    axes[1, 1].set_title('Non-Smokers')
+    axes[1, 1].set_xlabel('BMI')
+    axes[1, 1].set_ylabel('Charges')
+
+    # Adjust layout
+    plt.tight_layout(rect=[0, 0, 1, 0.96])  # Adjust spacing
+    plt.show()
 
 
 
-df = pd.read_csv('E:\\NumericalMethods\\Project\\DataSet.csv')
+if __name__ == "__main__":
+    
 
-df_cleaned = clean_data(df)
-# print(df_cleaned)
-# print(len(df_cleaned))
-histogram(df_cleaned)
+    df = pd.read_csv('E:\\NumericalMethods\\Project\\DataSet.csv')
 
-
-
-measures_age = compute_measures(df, 'age')
-measures_bmi = compute_measures(df, 'bmi')
-measures_charges = compute_measures(df, 'charges')
+    df_cleaned = clean_data(df)
 
 
-# Create a DataFrame to display the results
-results_table = pd.DataFrame({
-    'Variable': ['Age', 'BMI', 'Charges'],
-    'Mean': [measures_age['Mean'], measures_bmi['Mean'], measures_charges['Mean']],
-    'Median': [measures_age['Median'], measures_bmi['Median'], measures_charges['Median']],
-    'Variance': [measures_age['Variance'], measures_bmi['Variance'], measures_charges['Variance']],
-    'Standard Deviation': [measures_age['Standard Deviation'], measures_bmi['Standard Deviation'], measures_charges['Standard Deviation']]
-})
+    measures_age = compute_measures(df, 'age')
+    measures_bmi = compute_measures(df, 'bmi')
+    measures_charges = compute_measures(df, 'charges')
 
-# Display the table
-print(results_table)
 
-correlation_matrix(df_cleaned)
+    # Create a DataFrame to display the results
+    results_table = pd.DataFrame({
+        'Variable': ['Age', 'BMI', 'Charges'],
+        'Mean': [measures_age['Mean'], measures_bmi['Mean'], measures_charges['Mean']],
+        'Median': [measures_age['Median'], measures_bmi['Median'], measures_charges['Median']],
+        'Variance': [measures_age['Variance'], measures_bmi['Variance'], measures_charges['Variance']],
+        'Standard Deviation': [measures_age['Standard Deviation'], measures_bmi['Standard Deviation'], measures_charges['Standard Deviation']]
+    })
 
-scatter_plot(df_cleaned)
+
+    # Display the table
+    print(results_table)
+
+    histogram(df_cleaned)
+
+    correlation_matrix(df_cleaned)
+
+    scatter_plot(df_cleaned)
