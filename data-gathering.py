@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-
+from pre_process import preProcessor
 
 def clean_data(df):
     # Remove rows with missing values
@@ -242,3 +242,8 @@ if __name__ == "__main__":
     correlation_matrix(df_cleaned)
 
     scatter_plot(df_cleaned)
+
+    
+
+    # Encode categorical variables
+    preprocessor = preProcessor(df_cleaned)
