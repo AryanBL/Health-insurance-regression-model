@@ -243,7 +243,10 @@ if __name__ == "__main__":
 
     scatter_plot(df_cleaned)
 
-    
+    df_copy = df_cleaned.copy()
 
     # Encode categorical variables
     preprocessor = preProcessor(df_cleaned)
+    preprocessor.log_transform(df_cleaned)
+    preprocessor.create_composite_risk_score(df_cleaned)
+    preprocessor.family_size(df_cleaned)

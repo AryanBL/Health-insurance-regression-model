@@ -1,11 +1,12 @@
+import numpy as np
 import pandas as pd
 
 class preProcessor():
 
 
     def __init__(self,df):
-        self.df_copy = df.copy()
-        self.label_encoding(self.df_copy)
+        
+        self.label_encoding(df)
 
     
     def label_encoding(self, data):
@@ -23,6 +24,23 @@ class preProcessor():
         # Label encoding for 'region'
         data['region'] = data['region'].map({'southeast': 0, 'southwest': 1, 'northeast': 2, 'northwest': 3})
 
+ 
+       
+
+    def log_transform(self, data):
+        # Log-transform 'charges'
+        data['charges'] = np.log(data['charges'])
         # Display the updated dataset
-        #print(df_numeric.head())
+        #print(data.head())
+
+    def create_composite_risk_score(self, data):
+        # Create a composite risk score
+        data['risk_score'] = data['age'] * 0.1 + data['bmi'] * 0.3 + data['smoker'] * 0.6
+        # Display the updated dataset
+        #print(data.head())
+
+    def family_size(self, data):
+        # Create a new feature 'family_size'
+        data['family_size'] = data['children'] + 1
+        # Display the updated dataset
         print(data.head())
