@@ -239,7 +239,7 @@ if __name__ == "__main__":
 
     histogram(df_cleaned)
 
-    correlation_matrix(df_cleaned)
+    
 
     scatter_plot(df_cleaned)
 
@@ -252,11 +252,17 @@ if __name__ == "__main__":
     preprocessor.log_transform(df_cleaned)
     preprocessor.create_composite_risk_score(df_cleaned)
     preprocessor.family_size(df_cleaned)
+    preprocessor.create_composite_bmi_age(df_cleaned)
     X_train, X_test, y_train, y_test = preprocessor.split_data(df_cleaned)
 
-    df_cleaned.to_csv('E:\\NumericalMethods\\Project\\Cleaned_DataSet.csv', index=False)
+    #df_cleaned.to_csv('E:\\NumericalMethods\\Project\\Cleaned_DataSet.csv', index=False)
 
     print(f"X_train shape: {X_train.shape}")
     print(f"X_test shape: {X_test.shape}")
     print(f"y_train shape: {y_train.shape}")
     print(f"y_test shape: {y_test.shape}")
+
+    correlation_matrix(df_cleaned)
+
+    preprocessor.plot_scatter(df_cleaned)
+    preprocessor.plot_3d_scatter(df_cleaned)
