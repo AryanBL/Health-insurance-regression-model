@@ -246,8 +246,17 @@ if __name__ == "__main__":
     df_copy = df_cleaned.copy()
 
     # Encode categorical variables
+    
     preprocessor = preProcessor(df_cleaned)
+
     preprocessor.log_transform(df_cleaned)
     preprocessor.create_composite_risk_score(df_cleaned)
     preprocessor.family_size(df_cleaned)
+    X_train, X_test, y_train, y_test = preprocessor.split_data(df_cleaned)
+
     df_cleaned.to_csv('E:\\NumericalMethods\\Project\\Cleaned_DataSet.csv', index=False)
+
+    print(f"X_train shape: {X_train.shape}")
+    print(f"X_test shape: {X_test.shape}")
+    print(f"y_train shape: {y_train.shape}")
+    print(f"y_test shape: {y_test.shape}")

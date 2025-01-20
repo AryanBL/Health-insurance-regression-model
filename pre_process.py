@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from sklearn.model_selection import train_test_split
 
 class preProcessor():
 
@@ -7,6 +8,8 @@ class preProcessor():
     def __init__(self,df):
         
         self.label_encoding(df)
+     
+        
 
     
     def label_encoding(self, data):
@@ -41,7 +44,7 @@ class preProcessor():
 
     def create_composite_risk_score(self, data):
         # Create a composite risk score
-        data['risk_score'] = data['age'] * 0.1 + data['bmi'] * 0.3 + data['smoker'] * 0.6
+        data['risk_score'] = data['age'] * 0.3 + data['bmi'] * 0.1 + data['smoker'] * 0.6
         # Display the updated dataset
         #print(data.head())
 
@@ -50,3 +53,11 @@ class preProcessor():
         data['family_size'] = data['children'] + 1
         # Display the updated dataset
         #print(data.head())
+
+
+    def split_data(self, data, target_variable='charges', test_size=0.2):
+        # Split the data into training and test sets
+        X = data[['risk_score', 'sex', 'region', 'family_size']]
+        y = data[target_variable]
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
+        return X_train, X_test, y_train, y_test        
