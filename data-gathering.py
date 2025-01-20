@@ -250,3 +250,4 @@ if __name__ == "__main__":
     preprocessor.log_transform(df_cleaned)
     preprocessor.create_composite_risk_score(df_cleaned)
     preprocessor.family_size(df_cleaned)
+    df_cleaned.to_csv('E:\\NumericalMethods\\Project\\Cleaned_DataSet.csv', index=False)

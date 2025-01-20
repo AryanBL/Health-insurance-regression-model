@@ -33,6 +33,12 @@ class preProcessor():
         # Display the updated dataset
         #print(data.head())
 
+    def standardize(self, data,column = 'charges'):
+        # Standardize the data
+        data[column] = (data[column] - data[column].mean()) / data[column].std()
+        # Display the first 5 rows of the standardized data
+        print(data.head())    
+
     def create_composite_risk_score(self, data):
         # Create a composite risk score
         data['risk_score'] = data['age'] * 0.1 + data['bmi'] * 0.3 + data['smoker'] * 0.6
@@ -43,4 +49,4 @@ class preProcessor():
         # Create a new feature 'family_size'
         data['family_size'] = data['children'] + 1
         # Display the updated dataset
-        print(data.head())
+        #print(data.head())
