@@ -251,6 +251,7 @@ if __name__ == "__main__":
     preprocessor = preProcessor(df_cleaned)
 
     preprocessor.log_transform(df_cleaned)
+    preprocessor.standardize('bmi')
     preprocessor.create_composite_risk_score(df_cleaned)
     preprocessor.family_size(df_cleaned)
     preprocessor.create_composite_bmi_age(df_cleaned)

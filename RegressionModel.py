@@ -1,127 +1,126 @@
-class RegressionModel:
-    def __init__(self,X_train, X_test, y_train, y_test):
-        self.X_train = X_train
-        self.X_test = X_test
-        self.y_train = y_train
-        self.y_test = y_test
+import numpy as np
+import matplotlib.pyplot as plt
 
-    def gauss_elimination(self, matrix, vector):
-        """
-        Solve a system of linear equations using Gauss Elimination.
-        Args:
-            matrix (list of lists): Coefficient matrix.
-            vector (list): Right-hand side vector.
-        Returns:
-            list: Solution vector.
-        """
-        n = len(matrix)
 
-        # Forward elimination
-        for i in range(n):
-            # Partial pivoting to improve numerical stability
-            max_row = i
-            for k in range(i + 1, n):
-                if abs(matrix[k][i]) > abs(matrix[max_row][i]):
-                    max_row = k
+
+class SimpleRegressor:
+    def __init__(self, learning_rate=0.01, iterations=1000):
+        self.lr = learning_rate
+        self.iterations = iterations
+        self.weights = None
+        self.bias = None
+        self.loss_history = []
+        self.path_history = []  # Stores weight values during training
+        self.X_train = None
+        self.y_train = None
+        self.feature_names = ['risk_score', 'bmi', 'smoker']
+
+    def fit(self, X, y):
+        # Initialize parameters
+        num_features = len(X[0])
+        self.weights = [0.0] * num_features
+        self.bias = 0.0
+        self.X_train = X
+        self.y_train = y
+        num_samples = len(X)
+        self.weights_history = []  # Stores weight values during training
+        self.bias_history = []
+        # Store initial state
+        self.path_history.append((self.weights.copy(), self.bias))
+        
+        # Training loop
+        for _ in range(self.iterations):
+            # Calculate predictions and error
+            predictions = [sum(w*x for w,x in zip(self.weights, xi)) + self.bias for xi in X]
+            errors = [p - yt for p, yt in zip(predictions, y)]
             
-            # Swap rows
-            matrix[i], matrix[max_row] = matrix[max_row], matrix[i]
-            vector[i], vector[max_row] = vector[max_row], vector[i]
+            # Update weights
+            new_weights = [
+                w - self.lr * sum(e*xi[i] for e,xi in zip(errors,X))/num_samples 
+                for i,w in enumerate(self.weights)
+            ]
+            
+            # Update bias
+            new_bias = self.bias - self.lr * sum(errors)/num_samples
+            
+            # Store current parameters
+            self.weights = new_weights
+            self.bias = new_bias
+            self.weights_history.append(self.weights.copy())
+            self.bias_history.append(self.bias)
+            self.path_history.append((self.weights.copy(), self.bias))
+            
+            # Track loss
+            current_loss = sum(e**2 for e in errors)/num_samples
+            self.loss_history.append(current_loss)
 
-            # Make all rows below this one 0 in the current column
-            for k in range(i + 1, n):
-                factor = matrix[k][i] / matrix[i][i]
-                for j in range(i, n):
-                    matrix[k][j] -= factor * matrix[i][j]
-                vector[k] -= factor * vector[i]
+        return self.weights
 
-        # Back substitution
-        x = [0] * n
-        for i in range(n - 1, -1, -1):
-            x[i] = vector[i] / matrix[i][i]
-            for k in range(i - 1, -1, -1):
-                vector[k] -= matrix[k][i] * x[i]
+    def plot_contour(self, feature1=0, feature2=1):
+        """Shows gradient descent path for 2 selected features"""
+   
+        
+        # Create grid for selected features
+        w1_vals = np.linspace(-1, 1, 50)
+        w2_vals = np.linspace(-1, 1, 50)
+        W1, W2 = np.meshgrid(w1_vals, w2_vals)
+        
+        # Calculate costs using fixed other parameters
+        costs = np.zeros(W1.shape)
+        final_bias = self.bias
+        fixed_weight = self.weights[2]  # Weight for the third feature (smoker)
+        
+        for i in range(W1.shape[0]):
+            for j in range(W1.shape[1]):
+                temp_weights = [W1[i,j], W2[i,j], fixed_weight]
+                predictions = [
+                    sum(w*x for w,x in zip(temp_weights, xi)) + final_bias 
+                    for xi in self.X_train
+                ]
+                errors = [p - yt for p, yt in zip(predictions, self.y_train)]
+                costs[i,j] = sum(e**2 for e in errors)/len(errors)
+        
+        # Plot contour
+        plt.figure(figsize=(10, 6))
+        plt.contour(W1, W2, costs, levels=np.logspace(-1, 3, 15), alpha=0.6)
+        
+        # Plot optimization path
+        path = np.array([
+            [step[0][feature1], step[0][feature2]] 
+            for step in self.path_history
+        ])
+        plt.plot(path[:,0], path[:,1], 'r.-', markersize=5)
+        plt.scatter(path[-1,0], path[-1,1], c='g', s=100, label='Final Weights')
+        plt.title(f'Gradient Descent Path (Features {feature1+1} & {feature2+1})')
+        plt.xlabel(f'Weight {feature1+1} (Risk Score)')
+        plt.ylabel(f'Weight {feature2+1} (BMI)')
+        plt.legend()
+        plt.colorbar(label='Cost')
+        plt.show()
 
-        return x
-
-    def linear_regression_gauss(self):
-        """
-        Perform linear regression using Gauss Elimination.
-        Args:
-            X (list of lists): Feature matrix (each row is a data point, each column is a feature).
-            y (list): Output vector.
-        Returns:
-            list: Coefficients of the linear regression model.
-        """
-
-        X = self.X_train
-        y = self.y_train
-        # Add bias term (column of 1s) to X
-        n_samples = len(X)
-        n_features = len(X[0])
-        X_bias = [[1] + row for row in X]
-
-        # Print X_bias matrix
-        # print("X_bias matrix:")
-        # for row in X_bias:
-        #     print(row)
-
-        # Calculate normal equation components: X^T * X and X^T * y
-        A = [[0] * (n_features + 1) for _ in range(n_features + 1)]
-        b = [0] * (n_features + 1)
-
-        # Fill in A and b matrices
-        for i in range(n_features + 1):
-            for j in range(n_features + 1):
-                if i == 0 and j == 0:
-                    A[i][j] = 1  # First element is the number of samples
-                else:
-                    A[i][j] = sum(X_bias[k][i] * X_bias[k][j] for k in range(n_samples))/n_samples
-            b[i] = sum(X_bias[k][i] * y[k] for k in range(n_samples))/n_samples
-
-        # Solve the normal equation using Gauss Elimination
-        coefficients = self.gauss_elimination(A, b)
-        # print("b matrix:")
-        # for row in b:
-        #     print(row)
-        return coefficients
-    
-
-    def gradient_descent(self ,learning_rate=0.1, iterations=1000):
-        """
-        Perform gradient descent to optimize linear regression coefficients.
-        Args:
-            X (list of lists): Feature matrix (including bias term).
-            y (list): Target vector.
-            learning_rate (float): Learning rate for gradient descent.
-            iterations (int): Number of iterations.
-        Returns:
-            tuple: Optimized coefficients and history of coefficients.
-        """
-
-        X = self.X_train
-        y = self.y_train
-
-        m = len(y)  # Number of observations
-        n = len(X[0])  # Number of features (including bias)
-
-        # Initialize coefficients to zero
-        coefficients = [0] * n
-        coefficients_history = [[] for _ in range(n)]  # Store history for each coefficient
-
-        for _ in range(iterations):
-            # Calculate predictions
-            predictions = [sum(coefficients[j] * X[i][j] for j in range(n)) for i in range(m)]
-
-            # Compute gradients
-            gradients = [0] * n
-            for j in range(n):
-                gradients[j] = sum((predictions[i] - y[i]) * X[i][j] for i in range(m)) / m
-
-            # Update coefficients
-            for j in range(n):
-                coefficients[j] -= learning_rate * gradients[j]
-                coefficients_history[j].append(coefficients[j])  # Track history
-
-        return coefficients
-
+    def plot_convergence(self):
+        """Shows how the weights and bias change during training"""
+        
+        
+        # Create subplots
+        fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+        
+        # Plot weights convergence
+        for i, weight_history in enumerate(zip(*self.weights_history)):
+            axes[0].plot(weight_history, label=f'{self.feature_names[i]} (Weight {i+1})')
+        axes[0].set_title('Weights Convergence')
+        axes[0].set_xlabel('Iteration')
+        axes[0].set_ylabel('Weight Value')
+        axes[0].legend()
+        axes[0].grid(True)
+        
+        # Plot bias convergence
+        axes[1].plot(self.bias_history, label='Bias', color='black')
+        axes[1].set_title('Bias Convergence')
+        axes[1].set_xlabel('Iteration')
+        axes[1].set_ylabel('Bias Value')
+        axes[1].legend()
+        axes[1].grid(True)
+        
+        plt.tight_layout()
+        plt.show()
