@@ -2,6 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 from pre_process import preProcessor
+from RegressionModel import RegressionModel
 
 def clean_data(df):
     # Remove rows with missing values
@@ -266,3 +267,8 @@ if __name__ == "__main__":
 
     preprocessor.plot_scatter(df_cleaned)
     preprocessor.plot_3d_scatter(df_cleaned)
+
+    regressionmodel = RegressionModel(X_train.values.tolist(), X_test.values.tolist(), y_train.values.tolist(), y_test.values.tolist())
+
+    coefficients = regressionmodel.linear_regression_gauss()
+    print(f"Coefficients: {coefficients}")
