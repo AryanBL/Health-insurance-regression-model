@@ -205,7 +205,8 @@ class DataGatherer:
 
 if __name__ == "__main__":
     from pre_process import preProcessor
-    from RegressionModel import RegressionModel
+    from RegressionModel import SimpleRegressor
+    from TestRegressionModel import TestRegressionModel
 
 
     df = pd.read_csv('E:\\NumericalMethods\\Project\\DataSet.csv')
@@ -256,7 +257,15 @@ if __name__ == "__main__":
     preprocessor.plot_scatter(df_cleaned)
     preprocessor.plot_3d_scatter(df_cleaned)
 
-    regressionmodel = RegressionModel(X_train.values.tolist(), X_test.values.tolist(), y_train.values.tolist(), y_test.values.tolist())
+    simpleregressor = SimpleRegressor()
+    coefficients = simpleregressor.fit(X_train.values, y_train.values)
 
-    coefficients = regressionmodel.linear_regression_gauss()
-    print(f"Coefficients: {coefficients}")
+    print("Coefficients:", coefficients)
+    simpleregressor.plot_contour()
+    simpleregressor.plot_convergence()
+
+    # Test the model
+
+    test_model = TestRegressionModel(coefficients[0], coefficients[1], X_test.values, y_test.values)
+    mse = test_model.test_model()
+    print("Mean Squared Error for Gradient descent:", mse)
