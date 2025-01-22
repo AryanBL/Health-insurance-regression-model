@@ -54,7 +54,7 @@ class SimpleRegressor:
             current_loss = sum(e**2 for e in errors)/num_samples
             self.loss_history.append(current_loss)
 
-        return self.weights
+        return (self.weights, self.bias)
 
     def plot_contour(self, feature1=0, feature2=1):
         """Shows gradient descent path for 2 selected features"""
