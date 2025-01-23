@@ -50,6 +50,12 @@ class preProcessor():
         #print(data.head())
 
     
+    def smoker_age_interaction(self, data):
+        # Create a new feature 'smoker_age_interaction'
+        data['smoker_age_interaction'] = data['smoker'] * data['age']
+        # Display the updated dataset
+        #print(data.head())
+
     def create_composite_bmi_age(self, data):
         # Create a composite risk score
         data['bmi_age'] = data['age'] * data['bmi'] 
@@ -68,36 +74,72 @@ class preProcessor():
 
     def split_data(self, data, target_variable='charges', test_size=0.2):
         # Split the data into training and test sets
-        X = data[['risk_score', 'bmi', 'smoker']]
+        X = data[['smoker_age_interaction', 'age','bmi_age']]
         y = data[target_variable]
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
         return X_train, X_test, y_train, y_test
 
 
-    def plot_scatter(self, data):
-        # Scatter plots for every pair of variables
-        plt.figure(figsize=(18, 6))
 
-        plt.subplot(1, 3, 1)
-        plt.scatter(data['smoker'], data['risk_score'], alpha=0.6)
-        plt.title('Smoker vs Risk Score')
-        plt.xlabel('Smoker')
-        plt.ylabel('Risk Score')
 
-        plt.subplot(1, 3, 2)
-        plt.scatter(data['smoker'], data['bmi'], alpha=0.6)
-        plt.title('Smoker vs BMI')
-        plt.xlabel('Smoker')
-        plt.ylabel('BMI')
+    def plot_scatter(self, data, col1, col2, col3, col4):
+        """
+        Plots scatter plots for every pair of the four specified columns.
+        
+        Parameters:
+        data (DataFrame): The DataFrame containing the data.
+        col1 (str): The name of the first column.
+        col2 (str): The name of the second column.
+        col3 (str): The name of the third column.
+        col4 (str): The name of the fourth column.
+        """
+        plt.figure(figsize=(18, 12))
 
-        plt.subplot(1, 3, 3)
-        plt.scatter(data['risk_score'], data['bmi'], alpha=0.6)
-        plt.title('Risk Score vs BMI')
-        plt.xlabel('Risk Score')
-        plt.ylabel('BMI')
+        # Plot col1 vs col2
+        plt.subplot(2, 3, 1)
+        plt.scatter(data[col1], data[col2], alpha=0.6)
+        plt.title(f'{col1} vs {col2}')
+        plt.xlabel(col1)
+        plt.ylabel(col2)
+
+        # Plot col1 vs col3
+        plt.subplot(2, 3, 2)
+        plt.scatter(data[col1], data[col3], alpha=0.6)
+        plt.title(f'{col1} vs {col3}')
+        plt.xlabel(col1)
+        plt.ylabel(col3)
+
+        # Plot col1 vs col4
+        plt.subplot(2, 3, 3)
+        plt.scatter(data[col1], data[col4], alpha=0.6)
+        plt.title(f'{col1} vs {col4}')
+        plt.xlabel(col1)
+        plt.ylabel(col4)
+
+        # Plot col2 vs col3
+        plt.subplot(2, 3, 4)
+        plt.scatter(data[col2], data[col3], alpha=0.6)
+        plt.title(f'{col2} vs {col3}')
+        plt.xlabel(col2)
+        plt.ylabel(col3)
+
+        # Plot col2 vs col4
+        plt.subplot(2, 3, 5)
+        plt.scatter(data[col2], data[col4], alpha=0.6)
+        plt.title(f'{col2} vs {col4}')
+        plt.xlabel(col2)
+        plt.ylabel(col4)
+
+        # Plot col3 vs col4
+        plt.subplot(2, 3, 6)
+        plt.scatter(data[col3], data[col4], alpha=0.6)
+        plt.title(f'{col3} vs {col4}')
+        plt.xlabel(col3)
+        plt.ylabel(col4)
 
         plt.tight_layout()
         plt.show()
+
 
     def plot_3d_scatter(self, data, target_variable='charges'):
         # 3D scatter plot

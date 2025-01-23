@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 
 class SimpleRegressor:
-    def __init__(self, learning_rate=0.01, iterations=1000):
+    def __init__(self, learning_rate=0.1, iterations=1000):
         self.lr = learning_rate
         self.iterations = iterations
         self.weights = None
@@ -56,29 +56,25 @@ class SimpleRegressor:
 
         return (self.weights, self.bias)
 
-    def plot_contour(self, feature1=0, feature2=1):
-        """Shows gradient descent path for 2 selected features"""
-   
+    def plot_contour(self):
+        """Shows gradient descent path for risk_score and smoker features"""
         
         # Create grid for selected features
         w1_vals = np.linspace(-1, 1, 50)
         w2_vals = np.linspace(-1, 1, 50)
         W1, W2 = np.meshgrid(w1_vals, w2_vals)
         
-        # Calculate costs using fixed other parameters
+        # Calculate costs using both parameters
         costs = np.zeros(W1.shape)
-        final_bias = self.bias
-        fixed_weight = self.weights[2]  # Weight for the third feature (smoker)
-        
         for i in range(W1.shape[0]):
             for j in range(W1.shape[1]):
-                temp_weights = [W1[i,j], W2[i,j], fixed_weight]
+                temp_weights = [W1[i, j], W2[i, j]]
                 predictions = [
-                    sum(w*x for w,x in zip(temp_weights, xi)) + final_bias 
-                    for xi in self.X_train
+                    sum(w * x for w, x in zip(temp_weights, xi)) + self.bias 
+                    for xi in self.X_train[:, [0, 1]]  # Use only risk_score and smoker
                 ]
                 errors = [p - yt for p, yt in zip(predictions, self.y_train)]
-                costs[i,j] = sum(e**2 for e in errors)/len(errors)
+                costs[i, j] = np.mean(np.square(errors))
         
         # Plot contour
         plt.figure(figsize=(10, 6))
@@ -86,18 +82,21 @@ class SimpleRegressor:
         
         # Plot optimization path
         path = np.array([
-            [step[0][feature1], step[0][feature2]] 
+            [step[0][0], step[0][1]] 
             for step in self.path_history
         ])
-        plt.plot(path[:,0], path[:,1], 'r.-', markersize=5)
-        plt.scatter(path[-1,0], path[-1,1], c='g', s=100, label='Final Weights')
-        plt.title(f'Gradient Descent Path (Features {feature1+1} & {feature2+1})')
-        plt.xlabel(f'Weight {feature1+1} (Risk Score)')
-        plt.ylabel(f'Weight {feature2+1} (BMI)')
+        plt.plot(path[:, 0], path[:, 1], 'r.-', markersize=5)
+        plt.scatter(path[-1, 0], path[-1, 1], c='g', s=100, label='Final Weights')
+        plt.title('Gradient Descent Path (Risk Score & Smoker)')
+        plt.xlabel('Weight 1 (Risk Score)')
+        plt.ylabel('Weight 2 (Smoker)')
         plt.legend()
         plt.colorbar(label='Cost')
         plt.show()
 
+
+
+        
     def plot_convergence(self):
         """Shows how the weights and bias change during training"""
         
