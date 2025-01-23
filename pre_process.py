@@ -74,7 +74,7 @@ class preProcessor():
 
     def split_data(self, data, target_variable='charges', test_size=0.2):
         # Split the data into training and test sets
-        X = data[['smoker_age_interaction', 'age','bmi_age']]
+        X = data[['risk_score', 'bmi']]
         y = data[target_variable]
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=42)
         return X_train, X_test, y_train, y_test

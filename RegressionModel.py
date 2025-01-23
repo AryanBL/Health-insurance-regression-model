@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 
 class SimpleRegressor:
-    def __init__(self, learning_rate=0.1, iterations=1000):
+    def __init__(self, learning_rate=0.01, iterations=1000):
         self.lr = learning_rate
         self.iterations = iterations
         self.weights = None
