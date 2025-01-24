@@ -63,6 +63,70 @@ class SimpleRegressor:
             learning_rate *= decay_factor    
         
         return weights
+    
+
+    def newtons_method(self, tolerance=1e-6, max_iterations=100):
+        
+
+        X = self.X_train
+        y = self.y_train
+
+        # Number of samples (m) and features (n)
+        m = len(X)
+        n = len(X[0])
+
+        # Add a column of ones to X for the bias term (intercept)
+        X = [[1] + row for row in X]  # Adding bias (X becomes m x (n+1))
+
+        # Initialize weights (n+1 x 1)
+        weights = [0] * (n + 1)
+
+        # Initialize cost history and path history
+        self.path_history = [weights[:]]
+
+        for iteration in range(max_iterations):
+            # Step 1: Compute predictions
+            predictions = [sum(weights[j] * X[i][j] for j in range(n + 1)) for i in range(m)]
+
+            # Step 2: Compute errors
+            errors = [predictions[i] - y[i] for i in range(m)]
+
+            # Step 3: Compute cost (mean squared error)
+            cost = sum(e**2 for e in errors) / (2 * m)
+            self.cost_history.append(cost)
+
+            # Step 4: Compute gradient
+            gradients = [0] * (n + 1)
+            for j in range(n + 1):
+                gradients[j] = sum(errors[i] * X[i][j] for i in range(m)) / m
+
+            # Step 5: Compute Hessian
+            hessian = [[0] * (n + 1) for _ in range(n + 1)]
+            for j in range(n + 1):
+                for k in range(n + 1):
+                    hessian[j][k] = sum(X[i][j] * X[i][k] for i in range(m)) / m
+
+            # Step 6: Solve for weight updates using Newton's method formula
+            hessian_inv = np.linalg.inv(hessian)
+
+            weight_update = [0] * (n + 1)
+            for i in range(n + 1):
+                weight_update[i] = sum(hessian_inv[i][j] * gradients[j] for j in range(n + 1))
+
+            # Update weights
+            weights = [weights[j] - weight_update[j] for j in range(n + 1)]
+
+            self.path_history.append(weights[:])
+
+            # Check for convergence
+            if max(abs(w) for w in weight_update) < tolerance:
+                print(f"Converged after {iteration} iterations.")
+                break
+
+        return weights
+
+
+
 
     def compute_cost(self, w0, w1, w2):
         X = self.X_train
@@ -75,7 +139,7 @@ class SimpleRegressor:
             cost += error ** 2
         return cost / (2 * m)
 
-    # Step 3: Compute cost for a grid of weights
+    
     def plot_contour(self):
 
 
