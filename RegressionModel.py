@@ -4,122 +4,145 @@ import matplotlib.pyplot as plt
 
 
 class SimpleRegressor:
-    def __init__(self, learning_rate=0.01, iterations=1000):
-        self.lr = learning_rate
-        self.iterations = iterations
-        self.weights = None
-        self.bias = None
-        self.loss_history = []
+    def __init__(self,X_train, y_train):
+        self.X_train = X_train
+        self.y_train = y_train
+        
+        self.cost_history = []
         self.path_history = []  # Stores weight values during training
-        self.X_train = None
-        self.y_train = None
-        self.feature_names = ['risk_score', 'bmi', 'smoker']
+        self.feature_names = ['risk_score', 'bmi']
 
-    def fit(self, X, y):
-        # Initialize parameters
-        num_features = len(X[0])
-        self.weights = [0.0] * num_features
-        self.bias = 0.0
-        self.X_train = X
-        self.y_train = y
-        num_samples = len(X)
-        self.weights_history = []  # Stores weight values during training
-        self.bias_history = []
-        # Store initial state
-        self.path_history.append((self.weights.copy(), self.bias))
+    def gradient_descent(self , learning_rate=0.01, tolerance=1e-6, max_iterations=1000, decay_factor=1):
+       
+        X = self.X_train
+        y = self.y_train
         
-        # Training loop
-        for _ in range(self.iterations):
-            # Calculate predictions and error
-            predictions = [sum(w*x for w,x in zip(self.weights, xi)) + self.bias for xi in X]
-            errors = [p - yt for p, yt in zip(predictions, y)]
+        # Number of samples (m) and features (n)
+        m = len(X)
+        n = len(X[0])
+        
+        # Add a column of ones to X for the bias term (intercept)
+        X = [[1] + row for row in X]  # Adding bias (X becomes m x (n+1))
+        
+        # Initialize weights (n+1 x 1)
+        weights = [0] * (n + 1)
+        
+        # Initialize cost history and previous cost, and path history
+        self.path_history = [weights[:]]
+        prev_cost = float('inf')
+        
+        for iteration in range(max_iterations):
+            # Step 1: Compute predictions
+            predictions = [sum(weights[j] * X[i][j] for j in range(n + 1)) for i in range(m)]
             
-            # Update weights
-            new_weights = [
-                w - self.lr * sum(e*xi[i] for e,xi in zip(errors,X))/num_samples 
-                for i,w in enumerate(self.weights)
-            ]
+            # Step 2: Compute errors
+            errors = [predictions[i] - y[i] for i in range(m)]
             
-            # Update bias
-            new_bias = self.bias - self.lr * sum(errors)/num_samples
+            # Step 3: Compute cost (mean squared error)
+            cost = sum(e**2 for e in errors) / (2 * m)
+            self.cost_history.append(cost)
             
-            # Store current parameters
-            self.weights = new_weights
-            self.bias = new_bias
-            self.weights_history.append(self.weights.copy())
-            self.bias_history.append(self.bias)
-            self.path_history.append((self.weights.copy(), self.bias))
+            # Step 4: Check for convergence
+            if abs(prev_cost - cost) < tolerance:
+                print(f"Converged after {iteration} iterations.")
+                break
+            prev_cost = cost
             
-            # Track loss
-            current_loss = sum(e**2 for e in errors)/num_samples
-            self.loss_history.append(current_loss)
+            # Step 5: Compute gradient
+            gradients = [0] * (n + 1)  # Gradient for each weight
+            for j in range(n + 1):  # For each weight
+                gradients[j] = sum(errors[i] * X[i][j] for i in range(m)) / m
+            
+            # Step 6: Update weights
+            for j in range(n + 1):
+                weights[j] -= learning_rate * gradients[j]
 
-        return (self.weights, self.bias)
+            self.path_history.append(weights[:])
 
+            # Step 7: Update learning rate
+            learning_rate *= decay_factor    
+        
+        return weights
+
+    def compute_cost(self, w0, w1, w2):
+        X = self.X_train
+        y = self.y_train
+        m = len(y)
+        cost = 0
+        for i in range(m):
+            prediction = w0 + w1 * X[i][0] + w2 * X[i][1]
+            error = prediction - y[i]
+            cost += error ** 2
+        return cost / (2 * m)
+
+    # Step 3: Compute cost for a grid of weights
     def plot_contour(self):
-        """Shows gradient descent path for risk_score and smoker features"""
-        
-        # Create grid for selected features
-        w1_vals = np.linspace(-1, 1, 50)
-        w2_vals = np.linspace(-1, 1, 50)
-        W1, W2 = np.meshgrid(w1_vals, w2_vals)
-        
-        # Calculate costs using both parameters
-        costs = np.zeros(W1.shape)
-        for i in range(W1.shape[0]):
-            for j in range(W1.shape[1]):
-                temp_weights = [W1[i, j], W2[i, j]]
-                predictions = [
-                    sum(w * x for w, x in zip(temp_weights, xi)) + self.bias 
-                    for xi in self.X_train[:, [0, 1]]  # Use only risk_score and smoker
-                ]
-                errors = [p - yt for p, yt in zip(predictions, self.y_train)]
-                costs[i, j] = np.mean(np.square(errors))
-        
-        # Plot contour
-        plt.figure(figsize=(10, 6))
-        plt.contour(W1, W2, costs, levels=np.logspace(-1, 3, 15), alpha=0.6)
-        
-        # Plot optimization path
-        path = np.array([
-            [step[0][0], step[0][1]] 
-            for step in self.path_history
-        ])
-        plt.plot(path[:, 0], path[:, 1], 'r.-', markersize=5)
-        plt.scatter(path[-1, 0], path[-1, 1], c='g', s=100, label='Final Weights')
-        plt.title('Gradient Descent Path (Risk Score & Smoker)')
-        plt.xlabel('Weight 1 (Risk Score)')
-        plt.ylabel('Weight 2 (Smoker)')
-        plt.legend()
-        plt.colorbar(label='Cost')
-        plt.show()
 
+
+        w0 = 0  # Keep w0 fixed
+        w1_range = [i / 10.0 for i in range(-50, 51)]
+        w2_range = [i / 10.0 for i in range(-50, 51)]
+
+        W1, W2 = [], []
+        costs = []
+        for w1 in w1_range:
+            for w2 in w2_range:
+                cost = self.compute_cost(w0, w1, w2)
+                W1.append(w1)
+                W2.append(w2)
+                costs.append(cost)
+
+        # Reshape data for plotting
+        W1 = list(set(W1))
+        W2 = list(set(W2))
+        W1.sort()
+        W2.sort()
+
+        Z = []
+        for w1 in W1:
+            Z_row = []
+            for w2 in W2:
+                Z_row.append(self.compute_cost(w0, w1, w2))
+            Z.append(Z_row)
+
+        # Create contour plot
+        plt.figure(figsize=(10, 8))
+        plt.contourf(W1, W2, Z, levels=50, cmap="viridis")
+        plt.colorbar(label="Cost Function Value")
+
+        # Extract path history for w1 and w2
+        path_w1 = [point[1] for point in self.path_history]
+        path_w2 = [point[2] for point in self.path_history]
+
+        # Plot the path history
+        plt.plot(path_w1, path_w2, marker="o", color="red", label="Path History")
+        plt.scatter(path_w1[-1], path_w2[-1], color="white", label="Final Point", zorder=5)
+
+        plt.title("Contour Plot with Path History")
+        plt.xlabel("Weight w1")
+        plt.ylabel("Weight w2")
+        plt.legend()
+        plt.show()
 
 
         
     def plot_convergence(self):
-        """Shows how the weights and bias change during training"""
-        
+        """Shows how the weights change during training"""
         
         # Create subplots
-        fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+        fig, ax = plt.subplots(figsize=(10, 6))
         
         # Plot weights convergence
-        for i, weight_history in enumerate(zip(*self.weights_history)):
-            axes[0].plot(weight_history, label=f'{self.feature_names[i]} (Weight {i+1})')
-        axes[0].set_title('Weights Convergence')
-        axes[0].set_xlabel('Iteration')
-        axes[0].set_ylabel('Weight Value')
-        axes[0].legend()
-        axes[0].grid(True)
+        for i in range(len(self.feature_names) + 1):
+            weight_history = [weights[i] for weights in self.path_history]
+            label = 'Bias' if i == 0 else f'{self.feature_names[i-1]} (Weight {i})'
+            ax.plot(weight_history, label=label)
         
-        # Plot bias convergence
-        axes[1].plot(self.bias_history, label='Bias', color='black')
-        axes[1].set_title('Bias Convergence')
-        axes[1].set_xlabel('Iteration')
-        axes[1].set_ylabel('Bias Value')
-        axes[1].legend()
-        axes[1].grid(True)
+        ax.set_title('Weights Convergence')
+        ax.set_xlabel('Iteration')
+        ax.set_ylabel('Weight Value')
+        ax.legend()
+        ax.grid(True)
         
         plt.tight_layout()
         plt.show()

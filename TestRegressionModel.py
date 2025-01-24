@@ -1,33 +1,34 @@
 import matplotlib.pyplot as plt
+import numpy as np
 
 class TestRegressionModel:
-    def __init__(self, coefficients, intercept, X_test, y_test):
-        self.coefficients = coefficients
-        self.intercept = intercept
+    def __init__(self, weights, X_test, y_test):
+        self.coefficients = weights[1:]  # Exclude the intercept from weights
+        self.intercept = weights[0]  # The first element is the intercept
         self.X_test = X_test
         self.y_test = y_test
 
     def predict(self):
         y_pred = []
         for i in range(len(self.X_test)):
-            y_pred.append(sum(self.coefficients[j] * self.X_test[i][j] for j in range(len(self.X_test[i]))) + self.intercept)
-        return y_pred    
+            prediction = sum(self.coefficients[j] * self.X_test[i][j] for j in range(len(self.coefficients))) + self.intercept
+            y_pred.append(prediction)
+        return y_pred
 
-    def test_model(self,method = 0):
+    def test_model(self, method=0):
         y_pred = self.predict()
 
-        match method:
-            case 0:
-                # Calculate the Mean Squared Error
-                mse = sum((yt - yp) ** 2 for yt, yp in zip(self.y_test, y_pred)) / len(self.y_test)
-                return mse
-            case 1:
-                # Calculate the coefficent of determination
-                y_mean = sum(self.y_test) / len(self.y_test)
-                ss_res = sum((yt - yp) ** 2 for yt, yp in zip(self.y_test, y_pred))
-                ss_tot = sum((yt - y_mean) ** 2 for yt in self.y_test)
-                r2 = 1 - ss_res / ss_tot
-                return r2
+        if method == 0:
+            # Calculate the Mean Squared Error
+            mse = sum((self.y_test[i] - y_pred[i]) ** 2 for i in range(len(self.y_test))) / len(self.y_test)
+            return mse
+        elif method == 1:
+            # Calculate the coefficient of determination (R^2)
+            y_mean = sum(self.y_test) / len(self.y_test)
+            ss_res = sum((self.y_test[i] - y_pred[i]) ** 2 for i in range(len(self.y_test)))
+            ss_tot = sum((self.y_test[i] - y_mean) ** 2 for i in range(len(self.y_test)))
+            r2 = 1 - (ss_res / ss_tot)
+            return r2
 
 
   
