@@ -41,7 +41,7 @@ class preProcessor():
         # Standardize the data
         data[column] = (data[column] - data[column].mean()) / data[column].std()
         # Display the first 5 rows of the standardized data
-        print(data.head())    
+        #print(data.head())    
 
     def create_composite_risk_score(self, data):
         # Create a composite risk score
@@ -72,7 +72,7 @@ class preProcessor():
    
 
 
-    def split_data(self, data, target_variable='charges', test_size=0.2):
+    def split_data(self, data, target_variable='charges', test_size=0.25):
         # Split the data into training and test sets
         X = data[['risk_score', 'bmi']]
         y = data[target_variable]
