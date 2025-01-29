@@ -67,7 +67,7 @@ class SimpleRegressor:
 
     def newtons_method(self, tolerance=1e-6, max_iterations=100):
         
-
+        self.cost_history.clear()
         X = self.X_train
         y = self.y_train
 
@@ -141,38 +141,23 @@ class SimpleRegressor:
 
     
     def plot_contour(self):
-
-
         w0 = 0  # Keep w0 fixed
-        w1_range = [i / 10.0 for i in range(-50, 51)]
-        w2_range = [i / 10.0 for i in range(-50, 51)]
+        w1_range = np.linspace(-5, 5, 100)  # Define a range for w1
+        w2_range = np.linspace(-5, 5, 100)  # Define a range for w2
 
-        W1, W2 = [], []
-        costs = []
-        for w1 in w1_range:
-            for w2 in w2_range:
-                cost = self.compute_cost(w0, w1, w2)
-                W1.append(w1)
-                W2.append(w2)
-                costs.append(cost)
+        # Create a grid of w1 and w2 values
+        W1, W2 = np.meshgrid(w1_range, w2_range)
+        Z = np.zeros_like(W1)
 
-        # Reshape data for plotting
-        W1 = list(set(W1))
-        W2 = list(set(W2))
-        W1.sort()
-        W2.sort()
+        # Compute the cost for each combination of w1 and w2
+        for i in range(W1.shape[0]):
+            for j in range(W1.shape[1]):
+                Z[i, j] = self.compute_cost(w0, W1[i, j], W2[i, j])
 
-        Z = []
-        for w1 in W1:
-            Z_row = []
-            for w2 in W2:
-                Z_row.append(self.compute_cost(w0, w1, w2))
-            Z.append(Z_row)
-
-        # Create contour plot
+        # Create the contour plot with lines
         plt.figure(figsize=(10, 8))
-        plt.contourf(W1, W2, Z, levels=50, cmap="viridis")
-        plt.colorbar(label="Cost Function Value")
+        contour = plt.contour(W1, W2, Z, levels=50, cmap="viridis")
+        plt.clabel(contour, inline=True, fontsize=8)  # Add labels to the contour lines
 
         # Extract path history for w1 and w2
         path_w1 = [point[1] for point in self.path_history]
@@ -180,18 +165,21 @@ class SimpleRegressor:
 
         # Plot the path history
         plt.plot(path_w1, path_w2, marker="o", color="red", label="Path History")
-        plt.scatter(path_w1[-1], path_w2[-1], color="white", label="Final Point", zorder=5)
+        plt.scatter(path_w1[-1], path_w2[-1], color="black", label="Final Point", zorder=5)
 
+        # Add titles and labels
         plt.title("Contour Plot with Path History")
-        plt.xlabel("Weight w1")
-        plt.ylabel("Weight w2")
+        plt.xlabel("risk_score")
+        plt.ylabel("bmi")
         plt.legend()
         plt.show()
 
 
+
+
         
     def plot_convergence(self):
-        """Shows how the weights change during training"""
+        
         
         # Create subplots
         fig, ax = plt.subplots(figsize=(10, 6))
@@ -209,4 +197,16 @@ class SimpleRegressor:
         ax.grid(True)
         
         plt.tight_layout()
+        plt.show()
+
+
+    def plot_cost_convergence(self):
+        
+        plt.figure(figsize=(10, 6))
+        plt.plot(self.cost_history, label="Cost Function", color="blue")
+        plt.title("Cost Function Convergence")
+        plt.xlabel("Iteration")
+        plt.ylabel("Cost")
+        plt.legend()
+        plt.grid(True)
         plt.show()
